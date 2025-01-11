@@ -1,290 +1,234 @@
 <p align="center">
-<img src="https://i.imgur.com/Clzj7Xs.png"/>
+<img src="https://i.imgur.com/pU5A58S.png" height="40%" width="70%"alt="Microsoft Active Directory Logo"/>
 </p>
 
-<h1> How to Install osTicket </h1>
-This is an easy guide to installing a help desk ticketing system called osTicket.<br/>
+<h1>Configuring Active Directory (On-Premises) Within Azure</h1>
+This tutorial outlines the implementation of on-premises Active Directory within Azure Virtual Machines.<br />
 
 
-<h2> Files You Need to Download</h2>
+<!-- <h2>Video Demonstration</h2>
 
-- ### [Download Now](https://drive.google.com/drive/u/2/folders/1APMfNyfNzcxZC6EzdaNfdZsUwxWYChf6) 📁
+- ### [YouTube: How to Deploy on-premises Active Directory within Azure Compute](https://www.youtube.com) -->
 
-<h2> Software & Technologies  Used</h2>
+<h2>Environments and Technologies Used</h2>
 
-- Windows 10 (Build 19044)
-- Microsoft Azure (Virtual Machines)
-- Remote Desktop (RDP)
-- Internet Information Services (IIS)
+- Microsoft Azure (Virtual Machines/Compute)
+- Remote Desktop
+- Active Directory Domain Services
+- PowerShell
 
-  <h2> Prerequisites </h2>
+<h2>Operating Systems Used </h2>
 
-- Create a Virtual Machine in Azure
-- Install osTicket v1.15.8
-- Install HeidiSQL
-- Install MySQL
-- Install PHP
-- install Microsoft Visual C++ Redistributable
-  <h2>Steps</h2>
-<h3 align="center">Create Virtual Machine in Azure</h3>
-<br />
-<p>
-<h3 align="center">First, start by creating a Resource Group inside Azure.</h3>
-<br />
-</p>
-<p>
-	<img src="https://i.imgur.com/eBi5k2l.png" height="75%" width="100%" />
-</p>
-<p>
-<h3 align="center">Now, create a Windows 10 Virtual Machine (VM), typically with 2-4 Virtual CPUs. For username and password, it can be anything as we'll be using this info to remote in with our main computer. When creating the Virtual Machine (VM), allow Azure to create a new Virtual Network (Vnet):</h3>
-<br />
-</p>
-<p>
-	<img src="https://i.imgur.com/dEF1c7h.png" height="75%" width="100%" />
-</p>
-<br />
-<br />
-<h3 align="center">Open your Remote Desktop Connection app on your computer and connect to your Virtual Machine that was created in Azure. </h3>
-<br />
-<p>
-	<img src="https://github.com/Joeljjoseph1998/osticket-prereqs/assets/50834280/2e71fd86-4198-47aa-aa1a-d0aed1b8e0eb"/>
-	
+- Windows Server 2022
+- Windows 10 (21H2)
 
+<h2>High-Level Deployment and Configuration Steps</h2>
+
+- Create Resources
+- Ensure Connectivity between the client and Domain Controller
+- Install Active Directory
+- Create an Admin and Normal User Account in AD
+- Join Client-1 to your domain (myadproject.com)
+- Setup Remote Desktop for non-administrative users on Client-1
+- Create additional users and attempt to log into client-1 with one of the users
+
+<h2>Deployment and Configuration Steps</h2>
+<br />
+<br />
+<h3 align="center">Setup Resources in Azure</h3>
+<br />
+<p>
+  Create the Domain Controller VM (Windows Server 2022) named “DC-1”:
+</p>
+<p>
+  <img src="https://i.imgur.com/gaAzjvb.png" height="75%" width="100%" alt="resource group"/>
+  <img src="https://i.imgur.com/hubTfey.png" height="75%" width="100%" alt="vm ms server"/>
+</p>
+<p>
+  Create the Client VM (Windows 10) named “Client-1”. Use the same Resource Group and Vnet that was created in previous step:
+</p>
+<p>
+  <img src="https://i.imgur.com/XyEmv8f.png" height="75%" width="100%" alt="vm windows"/>
+</p>
+<p>
+  Set Domain Controller’s NIC Private IP address to be static:
+</p>
+<p>
+  <img src="https://i.imgur.com/KHU9kC4.png" height="75%" width="100%" alt="static ip"/>
+</p>
+<p>
+  Ensure that both VMs are in the same Vnet (you can check the topology with Network Watcher):
+</p>
+<p>
+  <img src="https://i.imgur.com/rFpHLdQ.png" height="75%" width="100%" alt="topology"/>
 </p>
 <br />
 <br />
-<h3 align="center">Now we need to install / Enable IIS in Windows. Go to your Search Bar > Type "Control Panel" > Click "Programs" > "Turn Windows features on or off" > Scroll down to "Internet Information Services (IIS).</h3>
+<h3 align="center">Ensure Connectivity between the client and Domain Controller</h3>
 <br />
 <p>
-	<img src="https://i.imgur.com/iB0DDRd.png" height="75%" width="100%" />
-</p>
-<br />
-<br />
-<h3 align="center">Once clicked, find the "Internet Information Services" expand it and then expand the "World Wide Web" tab. Afterward, expand the application Developer tab. Finally check the "CGI" button & press Ok. You will need CGI to download the PHP Manager. The PHP manager is a back-end web programming language that allows osTicket to run off a web browser.</h3>
-<br />
-<p>
-  <img src="https://github.com/Joeljjoseph1998/osticket-prereqs/assets/50834280/a6af9c35-e10c-4d7e-b2c8-30ffbe128f08" height="75%" width="100%"/>
-</p>
-<br />
-<h3 align="center">Install PHP Manager</h3>
-<br />
-<p>
-<h3 align="center">Download the PHP manager file, and agree with all the terms. We've now downloaded the PHP manager into our operating system.</h3>
-<p>
-  <img src="https://i.imgur.com/pmwpPEu.png"height="75%" width="100%"/>
-</p>
-<br/>
-<h3 align="center">Install Rewrite Module</h3>
-<br />
-<p>
-<h3 align="center">Download the Rewrite Module file, agree with all the terms and it should now be installed onto the Computer.</h3>
-<p>
-  <img src="https://github.com/Joeljjoseph1998/osticket-prereqs/assets/50834280/28cf2dd0-d39e-45f8-a01b-61aec6657228"height="75%" width="100%"/>
-</p>
-<br/>
-<h3 align="center">CREATE DIRECTORY C:\PHP</h3>
-<br />
-<p>
-<h3 align="center"> Open File Explorer, type, "C:\" in the search bar, Right-click and create a new folder called, "PHP". Download php-7.3.8-nts-Win32-VC15-x86.zip from<a href="https://drive.google.com/drive/u/2/folders/1APMfNyfNzcxZC6EzdaNfdZsUwxWYChf6"> Files You Need to Download</a>, Extract it by going to where you download the file, Right-click the PHP 7.3.8 file and press extract to the PHP Folder you just created.
-</h3>
-<p>
-  <img src="https://github.com/Joeljjoseph1998/osticket-prereqs/assets/50834280/18746085-a3cf-4f1f-b0d5-5cd73f969319"height="75%" width="100%"/>
-</p>
-<br/>
-<h3 align="center">VC_REDIST DOWNLOAD</h3>
-<br/>
-<h3 align="center"> Download and install VC_Redist, Agree with any terms and agreements and finish installing.
-</h3>
-<p>
-  <img src="https://i.imgur.com/Gx8ryBV.png"75%" width="100%"/>
-</p>
-<br/>
-<h3 align="center">DOWNLOAD MySQL </h3>
-<h3 align="center"> Download and install MySQL, Agree with any terms and agreements up until you get to the password portion. Here you can create a username and password for the database that you'll be using to store the Ticket Information used in osTicket. 
-</h3>
-<p>
-  <img src="https://i.imgur.com/IVpLg40.png"75%" width="100%"/>
-<br/>
-  <img src="https://i.imgur.com/zdhWXNx.png" height="75%" width="100%" />
-</p>
-<br/>
-<h3 align="center">Install osTicket v1.15.8</h3>
-<br />
-<p>
-  Download osTicket (download from within lab files: link).
+  Login to Client-1 with Remote Desktop and ping DC-1’s private IP address with ping -t <ip address> (perpetual ping):
 </p>
 <p>
-	Extract and copy the “upload” folder INTO c:\inetpub\wwwroot:
-</p>
-	<img src="https://i.imgur.com/0MUJLMU.png" height="75%" width="100%" />
-	<img src="https://i.imgur.com/1h9goM8.png" height="75%" width="100%" />
-<p>
-	Within c:\inetpub\wwwroot, Rename “upload” to “osTicket”:
+  <img src="https://i.imgur.com/bnPM9tX.png" height="75%" width="100%" alt="perpetual ping"/>
 </p>
 <p>
-	<img src="https://i.imgur.com/pDikkgq.png" height="75%" width="100%" />
+  Login to the Domain Controller and enable ICMPv4 in on the local windows firewall:
+</p>
+<p>
+  <img src="https://i.imgur.com/ZpPyEkt.png" height="75%" width="100%" alt="enable ICMPv4"/>
+</p>
+<p>
+  Check back at Client-1 to see the ping succeed:
+</p>
+<p>
+  <img src="https://i.imgur.com/8o3OfjY.png" height="75%" width="100%" alt="ping success"/>
 </p>
 <br />
 <br />
-<h3 align="center">Reload IIS (Open IIS, Stop and Start the server)</h3>
+<h3 align="center">Install Active Directory</h3>
 <br />
 <p>
-	Go to sites -> Default -> osTicket:
+  Login to DC-1 and install Active Directory Domain Services:
 </p>
 <p>
-	<img src="https://i.imgur.com/QeWNlG3.png" height="75%" width="100%" />
+  <img src="https://i.imgur.com/A1V9XJ5.png" height="75%" width="100%" alt="active directory install"/>
 </p>
 <p>
-	On the right, click “Browse *:80”:
+  Promote as a Domain Controller:
 </p>
 <p>
-	<img src="https://i.imgur.com/3iXhNbi.png" height="75%" width="100%"/>
-</p>
-<br />
-<br />
-<h3 align="center">Enable Extensions in IIS: Note that some extensions are not enabled</h3>
-<br />
-<p>
-	Go back to IIS, sites -> Default -> osTicket.
+  <img src="https://i.imgur.com/zi15fw4.png" height="75%" width="100%" alt="domain controller promotion"/>
 </p>
 <p>
-	Double-click PHP Manager:
+  Setup a new forest as myactivedirectory.com (can be anything, just remember what it is - I ultimately did set it up as myadproject.com which you'll see in the next pic):
 </p>
 <p>
-	<img src="https://i.imgur.com/LFKo5Hs.png" height="75%" width="100%" />
+  <img src="https://i.imgur.com/DCFUVrM.png" height="75%" width="100%" alt="set new forest"/>
 </p>
 <p>
-	Click “Enable or disable an extension”.
+  Restart and then log back into DC-1 as user: myadproject.com\labuser:
 </p>
 <p>
-	Enable: php_imap.dll.
-</p>
-<p>
-	Enable: php_intl.dll.
-</p>
-<p>
-	Enable: php_opcache.dll:
-</p>
-<p>
-	<img src="https://imgur.com/a/nrQo0kz" height="75%" width="100%"/>
+  <img src="https://i.imgur.com/7UakWMQ.png" height="75%" width="100%" alt="fqdn login"/>
 </p>
 <br />
 <br />
-<h3 align="center">Refresh the osTicket site in your browser, observe the changes</h3>
+<h3 align="center">Create an Admin and Normal User Account in AD</h3>
 <br />
 <p>
-	<img src="https://i.imgur.com/6iSNd4H.png" height="75%" width="100%" />
-</p>
-<br />
-<br />
-<h3 align="center">Rename</h3>
-<br />
-<p>
-	From: C:\inetpub\wwwroot\osTicket\include\ost-sampleconfig.php.
+  In Active Directory Users and Computers (ADUC), create an Organizational Unit (OU) called “_EMPLOYEES” and another one called "_ADMINS":
 </p>
 <p>
-	To: C:\inetpub\wwwroot\osTicket\include\ost-config.php:
+  <img src="https://i.imgur.com/cYmv0r7.png" height="75%" width="100%" alt="organizational unit"/>
+  <img src="https://i.imgur.com/v02CBPI.png" height="75%" width="100%" alt="organizational unit"/>
 </p>
 <p>
-	<img src="https://i.imgur.com/TEw71SD.png" height="75%" width="100%" />
-</p>
-<br />
-<br />
-<h3 align="center">Assign Permissions: ost-config.php</h3>
-<br />
-<p>
-	Disable inheritance -> Remove All:
+  Create a new employee named “Jane Doe” with the username of “jane_admin”:
 </p>
 <p>
-	<img src="https://i.imgur.com/1QtRWEF.png" height="75%" width="100%" />
+  <img src="https://i.imgur.com/h546E6L.png" height="75%" width="100%" alt="admin creation"/>
 </p>
 <p>
-	New Permissions -> Everyone -> All:
+  Add jane_admin to the “Domain Admins” Security Group:
 </p>
 <p>
-	<img src="https://i.imgur.com/YzsMXNX.png" height="75%" width="100%" />
+  <img src="https://i.imgur.com/mnLwTgq.png" height="75%" width="100%" alt="security group"/>
+</p>
+<p>  
+  Log out/close the Remote Desktop connection to DC-1 and log back in as “myadproject.com\jane_admin”. Use jane_admin as your admin account from now on:
 </p>
 <p>
-	<img src="https://i.imgur.com/k7x9yGR.png" height="75%" width="100%" />
+  <img src="https://i.imgur.com/xWZ4Kol.png" height="75%" width="100%" alt="admin login"/>
 </p>
 <br />
 <br />
-<h3 align="center">Continue Setting up osTicket in the browser (click Continue)</h3>
+<h3 align="center">Join Client-1 to your domain (myadproject.com)</h3>
 <br />
 <p>
-	Name Helpdesk.
+  From the Azure Portal, set Client-1’s DNS settings to the DC’s Private IP address:
 </p>
 <p>
-	Default email (receives email from customers):
+  <img src="https://i.imgur.com/1KRsjI6.png" height="75%" width="100%" alt="client dns settings"/>
 </p>
 <p>
-	<img src="https://i.imgur.com/rvMvlNC.png" height="75%" width="100%" />
-	<img src="https://i.imgur.com/YszhIpl.png" height="75%" width="100%" />
-</p>
-<br />
-<br />
-<h3 align="center">Download and Install HeidiSQL</h3>
-<br />
-<p>
-	<img src="https://i.imgur.com/AEg0b2P.png" height="75%" width="100%" />
+  From the Azure Portal, restart Client-1.
 </p>
 <p>
-	Create a new session, root/Password1.
+  Login to Client-1 (Remote Desktop) as the original local admin (labuser) and join it to the domain (computer will restart):
 </p>
 <p>
-	Connect to the session:
+  <img src="https://i.imgur.com/50wszcP.png" height="75%" width="100%" alt="domain joining"/>
 </p>
 <p>
-	<img src="https://i.imgur.com/9t51ApR.png" height="75%" width="100%" "/>
+  Login to the Domain Controller (Remote Desktop) and verify Client-1 shows up in Active Directory Users and Computers (ADUC) inside the “Computers” container on the root of the domain.
 </p>
 <p>
-	Create a database called “osTicket”:
+  Create a new OU named “_CLIENTS” and drag Client-1 into there:
 </p>
 <p>
-	<img src="https://i.imgur.com/vXzmQqg.png" height="75%" width="100%" />
+  <img src="https://i.imgur.com/vB1n9m0.png" height="75%" width="100%" alt="active directory client verification"/>
 </p>
 <br />
 <br />
-<h3 align="center">Continue Setting up osTicket in the browser</h3>
-<br />
-<p>MySQL Database: osTicket</p>
-<p>
-	MySQL Username: root
-</p>
-<p>
-	MySQL Password: Password1:
-</p>
-<p>
-	<img src="https://i.imgur.com/akDyber.png" height="75%" width="100%" />
-</p>
-<p>Click “Install Now!”</p>
-<p>Congratulations, hopefully it is installed with no errors!</hp>
-<p>
-	<img src="https://i.imgur.com/J5omRoE.png" height="75%" width="100%" />
-</p>
-<br />
-<br />
-<h3 align="center">Clean up</h3>
+<h3 align="center">Setup Remote Desktop for non-administrative users on Client-1</h3>
 <br />
 <p>
-	Delete: C:\inetpub\wwwroot\osTicket\setup:
+  Log into Client-1 as mydomain.com\jane_admin and open system properties.
 </p>
 <p>
-	<img src="https://i.imgur.com/eg0ZPG3.png" height="75%" width="100%" />
+  Click “Remote Desktop”.
 </p>
 <p>
-	Set Permissions to “Read” only: C:\inetpub\wwwroot\osTicket\include\ost-config.php:
+  Allow “domain users” access to remote desktop.
 </p>
 <p>
-	<img src="https://i.imgur.com/n6k46XL.png" height="75%" width="100%" />
+  You can now log into Client-1 as a normal, non-administrative user now.
+</p>
+<p>
+  Normally you’d want to do this with Group Policy that allows you to change MANY systems at once (maybe a future lab):
+</p>
+<p>
+  <img src="https://i.imgur.com/8BfpT3s.png" height="75%" width="100%" alt="remote desktop setup"/>
 </p>
 <br />
 <br />
-<h3 align="center">Login to the osTicket Admin Panel (http://localhost/osTicket/scp/login.php)</h3>
+<h3 align="center">Create a bunch of additional users and attempt to log into client-1 with one of the users</h3>
 <br />
 <p>
-	<img src="https://i.imgur.com/8wvWH0H.jpg" height="75%" width="100%" />
+  Login to DC-1 as jane_admin
+</p>
+<p>
+  Open PowerShell_ise as an administrator.
+</p> 
+<p>  
+  Create a new File and paste the contents of this script (https://github.com/Xinloiazn/configure-ad/blob/main/adscript.ps1) into it:
+</p>
+<p>
+  <img src="https://i.imgur.com/0i8uApf.png" height="75%" width="100%" alt="create users script"/>
+</p>
+<p>
+  Run the script and observe the accounts being created:
+</p>
+<p>
+  <img src="https://i.imgur.com/6QOGzs6.png" height="75%" width="100%" alt="observe create users script"/>
+</p>
+<p>
+  When finished, open ADUC and observe the accounts in the appropriate OU and attempt to log into Client-1 with one of the accounts (take note of the password in the script):
+</p>
+<p>
+  <img src="https://i.imgur.com/ZZCfiCp.png" height="75%" width="100%" alt="employee user accounts"/>
+  <img src="https://i.imgur.com/7gBpNzN.png" height="75%" width="100%" alt="employee user selection"/>
+  <img src="https://i.imgur.com/cqsddjn.png" height="75%" width="100%" alt="employee user login"/>
 </p>
 <br />
 <br />
-<h3 align="center"> Congrats, You've Finished Installing osTicket.</h3>
+<p>
+  I hope this tutorial helped you learn a little bit about network security protocols and observe traffic between virtual machines. This can be easily done on a PC or a Mac. Mac would just have an extra step to download the Remote Desktop App.
+</p>
+<p>
+  Now that we're done, DON'T FORGET TO CLEAN UP YOUR AZURE ENVIRONMENT so that you don't incur unnecessary charges.
+</p>
+<p>
+  Close your Remote Desktop connection, delete the Resource Group(s) created at the beginning of this tutorial, and verify Resource Group deletion.
+</p>
